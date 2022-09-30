@@ -1,9 +1,27 @@
-import { useState } from 'react';
+import _ from 'lodash';
+import { useState, useEffect } from 'react';
+import { getAllData } from './store/actions/resources';
+import { getResources } from './store/selectors/resources';
+import { RESOURCE_NAME } from './utils/constants/resources';
 import reactLogo from './assets/react.svg';
 import './App.css';
 
 function App() {
   const [count, setCount] = useState(0);
+
+  const post = getResources(RESOURCE_NAME.POST);
+
+  useEffect(() => {
+    (async () => {
+      await getAllData(RESOURCE_NAME.POST);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (_.isEmpty(post)) return;
+
+    console.log(post);
+  }, [post.rows]);
 
   return (
     <div className="App">
