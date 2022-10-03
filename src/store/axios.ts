@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import axios, { AxiosInstance } from 'axios';
+import { dispatchResource } from './reducers/resources';
 import * as cookieUtils from '../utils/cookieUtils';
-import resources from './reducers/resources';
 import type { ResourceName } from '../types/resources';
 import { overwriteResource, setResource, updateResource } from './actions/resources';
 
@@ -33,14 +33,15 @@ export const applyInterceptors = () => {
 
     if (!config.resourceName) return res;
 
-    const { dispatch } = resources[config.resourceName].getState<typeof config.resourceName>();
-
     if (config.overwrite) {
-      dispatch(overwriteResource(config.resourceName, data));
+      dispatchResource(config.resourceName, overwriteResource(config.resourceName, data));
     } else if (config.method === 'patch') {
-      dispatch(updateResource(config.resourceName, { id: data.id, data }));
+      dispatchResource(
+        config.resourceName,
+        updateResource(config.resourceName, { id: data.id, data })
+      );
     } else {
-      dispatch(setResource(config.resourceName, data));
+      dispatchResource(config.resourceName, setResource(config.resourceName, data));
     }
 
     return res;

@@ -1,7 +1,6 @@
 import axios from '../axios';
-import type { ResourceMap, ResourceName } from '../../types/resources';
-import type { Payload, Payloads } from '../reducers/resources';
-import resources from '../reducers/resources';
+import type { Payload, Payloads, ResourceMap, ResourceName } from '../../types/resources';
+import { dispatchResource } from '../reducers/resources';
 
 export const setResource = <T extends ResourceName>(
   resourceName: T,
@@ -61,15 +60,14 @@ export const getDataById = async <T extends ResourceName>(
 };
 
 export const addData = async <T extends ResourceName>(resourceName: T, payload: unknown) => {
-  const { dispatch } = resources[resourceName].getState<T>();
-
   const { data } = await axios.post<ResourceMap[T]>(`/${resourceName}`, payload, {
     headers: {
       resourceName,
     },
   });
 
-  dispatch(
+  dispatchResource(
+    resourceName,
     updateResource(resourceName, {
       id: data.id,
       data,
@@ -92,9 +90,7 @@ export const updateData =
   };
 
 export const deleteData = async <T extends ResourceName>(resourceName: T, id: number) => {
-  const { dispatch } = resources[resourceName].getState<T>();
-
   await axios.delete(`/${resourceName}/${id}`);
 
-  dispatch(deleteResource(resourceName, id));
+  dispatchResource(resourceName, deleteResource(resourceName, id));
 };

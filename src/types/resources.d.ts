@@ -1,5 +1,25 @@
 import { RESOURCE_NAME } from '../utils/constants/resources';
 
+export type Payload<K> = {
+  id: number;
+  data: K | Partial<K>;
+};
+
+export type Payloads<T extends ResourceName> = ResourceStructure<T>;
+
+export type Action<T extends ResourceName, K extends ResourceMap[T]> = {
+  type: string;
+  data: Payload<K> | Payloads<T> | number;
+};
+
+// We create our own 'reducer' types + how the dispatch function will do
+export type ResourceReducer = Resources & {
+  dispatch: <T extends ResourceName, K extends ResourceMap[T]>(
+    resourceName: T,
+    action: Action<T, K>
+  ) => void;
+};
+
 export type Profile = {
   id: number;
   firstName: string;

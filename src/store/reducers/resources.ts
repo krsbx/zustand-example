@@ -1,25 +1,19 @@
 import _ from 'lodash';
 import create from 'zustand';
-import { devtools, redux } from 'zustand/middleware';
+import { devtools, persist } from 'zustand/middleware';
+import type {
+  Action,
+  ResourceMap,
+  ResourceName,
+  ResourceReducer,
+  ResourceStructure,
+} from '../../types/resources';
 import { RESOURCE_NAME } from '../../utils/constants/resources';
-import type { ResourceMap, ResourceName, ResourceStructure } from '../../types/resources';
 import { hasOwnProperty } from '../../utils/property';
 
 const defaultState = {
   rows: {},
   count: 0,
-};
-
-export type Payload<K> = {
-  id: number;
-  data: K | Partial<K>;
-};
-
-export type Payloads<T extends ResourceName> = ResourceStructure<T>;
-
-type Action<T extends ResourceName, K extends ResourceMap[T]> = {
-  type: string;
-  data: Payload<K> | Payloads<T> | number;
 };
 
 const reducer =
@@ -85,21 +79,30 @@ const reducer =
     }
   };
 
-const allReducer = _.reduce(
-  RESOURCE_NAME,
-  (acc, curr) => ({
-    ...acc,
-    [curr]: create(devtools(redux(reducer(curr), defaultState))),
-  }),
-  {} as Record<
-    ResourceName,
-    Omit<ReturnType<typeof create>, 'getState'> & {
-      getState: <T extends ResourceName>() => ResourceStructure<T> & {
-        dispatch: (params: Action<T, ResourceMap[T]>) => void;
-      };
-      dispatchFromDevtools: boolean;
-    }
-  >
+const resources = create<ResourceReducer>()(
+  devtools(
+    persist((set) => ({
+      // We setup the global resources
+      [RESOURCE_NAME.COMMENT]: defaultState,
+      [RESOURCE_NAME.POST]: defaultState,
+      [RESOURCE_NAME.USER]: defaultState,
+
+      // We create our own dispatch for this global resources
+      dispatch: (resourceName, action) =>
+        set((state) => {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          const resource = reducer(resourceName)(state[resourceName], action);
+
+          return {
+            ...state,
+            [resourceName]: resource,
+          };
+        }),
+    }))
+  )
 );
 
-export default allReducer;
+export const { dispatch: dispatchResource } = resources.getState();
+
+export default resources;
