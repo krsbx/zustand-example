@@ -1,6 +1,8 @@
 import { Flex, Stack } from '@chakra-ui/react';
+import shallow from 'zustand/shallow';
 import { useEffect } from 'react';
 import { getAllData } from './store/actions/resources';
+import resources from './store/reducers/resources';
 import { getResources } from './store/selectors/resources';
 import { RESOURCE_NAME } from './utils/constants/resources';
 import './App.css';
@@ -16,6 +18,19 @@ function App() {
 
   // Or we can deconstruct it like this
   // const { posts } = resources.getState();
+
+  // Subscribe to a changes in the store
+  // with a shallow equality functions
+  resources.subscribe(
+    (state) => state.posts.rows,
+    (current, prev) => {
+      console.log('current : ', current);
+      console.log('prev : ', prev);
+    },
+    {
+      equalityFn: shallow,
+    }
+  );
 
   useEffect(() => {
     (async () => {

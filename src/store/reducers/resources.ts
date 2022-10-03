@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import create from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import type {
   Action,
   ResourceMap,
@@ -81,7 +81,7 @@ const reducer =
 
 const resources = create<ResourceReducer>()(
   devtools(
-    persist((set) => ({
+    subscribeWithSelector((set) => ({
       // We setup the global resources
       [RESOURCE_NAME.COMMENT]: defaultState,
       [RESOURCE_NAME.POST]: defaultState,
